@@ -41,18 +41,20 @@ namespace Gelf.Extensions.Logging
                 return;
             }
 
+            var includeOptionalFields = !Options.OmitOptionalFields;
+
             var message = new GelfMessage
             {
                 ShortMessage = formatter(state, exception),
                 Host = Options.LogSource,
-                Logger = _name,
-                Exception = exception?.ToString(),
+                Logger = includeOptionalFields ? _name : null,
+                Exception = includeOptionalFields ? exception?.ToString() : null,
                 Level = GetLevel(logLevel),
                 Timestamp = GetTimestamp(),
                 AdditionalFields = GetAdditionalFields(logLevel, eventId, state, exception).ToArray()
             };
 
-            if (eventId != default)
+            if (eventId != default && includeOptionalFields)
             {
                 message.EventId = eventId.Id;
                 message.EventName = eventId.Name;

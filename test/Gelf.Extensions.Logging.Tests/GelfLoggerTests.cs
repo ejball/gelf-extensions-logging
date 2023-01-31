@@ -87,6 +87,40 @@ namespace Gelf.Extensions.Logging.Tests
             Assert.Equal("foo", message.event_name);
         }
 
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task Omits_optional_fields_via_option(bool omits)
+        {
+            var options = LoggerFixture.LoggerOptions;
+            options.OmitOptionalFields = omits;
+            var messageText = Faker.Lorem.Sentence();
+            var exception = new Exception("Something went wrong!");
+
+            using var loggerFactory = LoggerFixture.CreateLoggerFactory(options);
+            var sut = loggerFactory.CreateLogger(nameof(GelfLoggerTests));
+            sut.LogError(new EventId(197, "foo"), exception, messageText);
+
+            var message = await GraylogFixture.WaitForMessageAsync();
+
+            Assert.Equal(messageText, message.message);
+
+            if (omits)
+            {
+                Assert.Throws<RuntimeBinderException>(() => message.logger);
+                Assert.Throws<RuntimeBinderException>(() => message.exception);
+                Assert.Throws<RuntimeBinderException>(() => message.event_id);
+                Assert.Throws<RuntimeBinderException>(() => message.event_name);
+            }
+            else
+            {
+                Assert.Equal(nameof(GelfLoggerTests), message.logger);
+                Assert.Equal(exception.ToString(), message.exception);
+                Assert.Equal(197, message.event_id);
+                Assert.Equal("foo", message.event_name);
+            }
+        }
+
         [Fact]
         public async Task Sends_message_with_additional_fields_from_options()
         {

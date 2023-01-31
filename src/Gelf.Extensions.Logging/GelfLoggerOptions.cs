@@ -70,5 +70,10 @@ namespace Gelf.Extensions.Logging
         ///     Include a field with the original message template before structured log parameters are replaced.
         /// </summary>
         public bool IncludeMessageTemplates { get; set; }
+
+        /// <summary>
+        ///     Omit optional fields normally added automatically (logger, exception, event_id, event_name).
+        /// </summary>
+        public bool OmitOptionalFields { get; set; }
     }
 }
